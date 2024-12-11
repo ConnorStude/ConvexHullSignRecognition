@@ -32,8 +32,11 @@ def naive_pixel_comparison(image,time):
         return "No"
 
 def timing_test():
-   
+    total_time =time.time()
     i=1
+    yes_accuracy = 10
+    no_accuracy = 10
+    invalid_accuracy = 5
     accuracy = 25
     for i  in range(25):
         start_time = time.time()
@@ -42,30 +45,42 @@ def timing_test():
         result = naive_pixel_comparison(image,1)
         if i < 10 and (result!="Yes"):
             accuracy=accuracy-1
+            yes_accuracy=yes_accuracy-1
+            print("incorrect classification for yes gesture")
         if (i < 20 and i>9) and (result != "No"):
             accuracy=accuracy-1
+            no_accuracy=no_accuracy-1
+            print("incorrect classifcation for No gesture")
         if i>19 and result!="Invalid":
-            accuracy=accuracy-1 
+            accuracy=accuracy-1
+            invalid_accuracy=invalid_accuracy-1
+            print("incorrect classifcation for invalid gesture") 
         end_time = time.time()
         print(f"Execution Time: {end_time - start_time:.4f} seconds")
     print("accuracy is ",accuracy/25*100,"%")
+    print("the yes gesture accuracy was ",yes_accuracy/10*100,"%")
+    print("the no gesture accuracy was ",no_accuracy/10*100,"%")
+    print("the invalid gesture accuracy was ",invalid_accuracy/5*100,"%")
+    over_time = time.time()
+    print(f"the total time to run was {over_time-total_time:.4f} seconds")
 
 # Test the naive algorithm
+if args.performanceTest == 0:
 
-image = cv2.imread("./performance_test_input/input_20.jpg")  # Replace with your test image
-if image is None:
-    print("Error: Image not found or unable to read the file. Check the file path or format.")
-    exit()  # Exit the script if the image is not loaded
-else:
-    print("Image successfully loaded.")
-result = naive_pixel_comparison(image,0)
-print(f"Detected gesture: {result}")
+    image = cv2.imread("./testing_data/no_1.jpg")  # Replace with your test image
+    if image is None:
+        print("Error: Image not found or unable to read the file. Check the file path or format.")
+        exit()  # Exit the script if the image is not loaded
+    else:
+        print("Image successfully loaded.")
+    result = naive_pixel_comparison(image,0)
+    print(f"Detected gesture: {result}")
 
-cv2.imshow("Naive Pixel Comparison", image)
-# Press 'q' to quit
-cv2.waitKey(1) == ord('q')
-cv2.waitKey(0)
-cv2.destroyAllWindows()
+    cv2.imshow("Naive Pixel Comparison", image)
+    # Press 'q' to quit
+    cv2.waitKey(1) == ord('q')
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
 
 #run timing tracking for performance
 if args.performanceTest == 1:

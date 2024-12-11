@@ -133,11 +133,15 @@ def interpolate_hull(hull, target_size): #
     return interpolated_hull
 
 def timing_test():
+    total_time =time.time()
     training_yes = './testing_data/yes_2.jpg'
     training_no = './testing_data/no_2.jpg'
     training_yes_hull=compute_reference_hull(training_yes)
     training_no_hull = compute_reference_hull(training_no)
     i=1
+    yes_accuracy = 0
+    no_accuracy = 0
+    invalid_accuracy = 0
     accuracy = 0
     for i  in range(25):
         start_time = time.time()
@@ -148,26 +152,44 @@ def timing_test():
             if training_yes_hull and compare_hulls(image_hull, training_yes_hull):
                 if (i<10):
                     accuracy=accuracy+1
+                    yes_accuracy=yes_accuracy+1
+                    print("correct classifcation of yes gesture")
             elif training_no_hull and compare_hulls(image_hull, training_no_hull):
                 if (i>9 and i<20):
                     accuracy=accuracy+1
+                    no_accuracy=no_accuracy+1
+                    print("correct classifcation of no gesture")
             else:
                 if (i>19):
                     accuracy=accuracy+1
+                    invalid_accuracy=invalid_accuracy+1
+                    print("correct classifcation of invalid gesture")
             # if other check fails runs less accurate secondary check
                 else: 
                     result = bottom_distance(image_hull,training_yes_hull,training_no_hull)
                     if (i<10) and (result == "The image is possibly a 'yes'"):
                         accuracy=accuracy+1
+                        yes_accuracy=yes_accuracy+1
+                        print("correct classifcation of yes gesture")
                     elif (i>9 and i<20) and (result == "The image is possibly a 'no'"):
                         accuracy=accuracy+1
+                        no_accuracy=no_accuracy+1
+                        print("correct classifcation of no gesture")
         else:
             if (i>19):
                 accuracy=accuracy+1
+                invalid_accuracy=invalid_accuracy+1
+                print("correct classifcation of invalid gesture")
             print("Failed to extract input points.")
+            print("failed to classify gesture")
         end_time = time.time()
         print(f"Execution Time: {end_time - start_time:.4f} seconds")
     print("accuracy is ",accuracy/25*100,"%")
+    print("the yes gesture accuracy was ",yes_accuracy/10*100,"%")
+    print("the no gesture accuracy was ",no_accuracy/10*100,"%")
+    print("the invalid gesture accuracy was ",invalid_accuracy/5*100,"%")
+    over_time = time.time()
+    print(f"the total time to run was {over_time-total_time:.4f} seconds")
 
 # to control if you want to test timing or check contours
 timing = args.performanceTest
@@ -177,7 +199,7 @@ else:
     # training cata
     training_yes = './testing_data/yes_2.jpg'
     training_no = './testing_data/no_2.jpg'
-    input_image = './testing_data/yes_4.jpg'
+    input_image = './testing_data/yes_1.jpg'
 
     # computing the training datas convex hulls
     training_yes_hull=compute_reference_hull(training_yes)
