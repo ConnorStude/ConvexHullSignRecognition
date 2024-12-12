@@ -7,30 +7,32 @@ import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument('--performanceTest', type=int, help='runs performance test.',default=0)
 args = parser.parse_args()
-def naive_pixel_comparison(image,time):
-    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)  # Convert to grayscale
-    _, thresh = cv2.threshold(gray, 200, 255, cv2.THRESH_BINARY_INV)  # Thresholding
 
-    # Calculate the percentage of white pixels (indicating fingers)
+def naive_pixel_comparison(image,time):
+    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)  # convert to grayscale
+    _, thresh = cv2.threshold(gray, 200, 255, cv2.THRESH_BINARY_INV)  # thresholding
+
+    # calculate the percentage of white pixels (indicating fingers)
     white_pixel_ratio = np.sum(thresh == 255) / thresh.size
 
     if time == 0:
         cv2.imshow("Thresholded Image", thresh)
-        cv2.waitKey(0)
+        cv2.waitKey(0)==ord('q')
         cv2.destroyAllWindows()
 
     if white_pixel_ratio == 1 or white_pixel_ratio <0.01: #to filter out invalid images of just blank images
         print("Invalid gesture")
         return "Invalid"
     
-    elif white_pixel_ratio > 0.4:  # Mostly white area (open fingers)
+    elif white_pixel_ratio > 0.4:  # mostly white area (open fingers)
         print("yes gesture detected.")
         return "Yes"
     
-    else:  # More dark space (likely two fingers)
+    else:  # more dark space (likely two fingers)
         print("No gesture detected.")
         return "No"
 
+# for performance test
 def timing_test():
     total_time =time.time()
     i=1
@@ -64,22 +66,19 @@ def timing_test():
     over_time = time.time()
     print(f"the total time to run was {over_time-total_time:.4f} seconds")
 
-# Test the naive algorithm
+# main either calls unit tests to performance test
 if args.performanceTest == 0:
 
-    image = cv2.imread("./testing_data/no_1.jpg")  # Replace with your test image
+    image = cv2.imread("./testing_data/yes_3.jpg")  # replace with your unit test image
     if image is None:
         print("Error: Image not found or unable to read the file. Check the file path or format.")
-        exit()  # Exit the script if the image is not loaded
+        exit() 
     else:
         print("Image successfully loaded.")
     result = naive_pixel_comparison(image,0)
     print(f"Detected gesture: {result}")
-
     cv2.imshow("Naive Pixel Comparison", image)
-    # Press 'q' to quit
-    cv2.waitKey(1) == ord('q')
-    cv2.waitKey(0)
+    cv2.waitKey(0) == ord('q') # press 'q' to quit
     cv2.destroyAllWindows()
 
 #run timing tracking for performance

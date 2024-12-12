@@ -10,11 +10,11 @@ parser.add_argument('--performanceTest', type=int, help='runs performance test.'
 args = parser.parse_args()
 
 # preprocess image and extract contour Points
-def preprocess_points(image_path): #
+def preprocess_points(image_path): 
     image = cv2.imread(image_path)
     gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
     blurred = cv2.GaussianBlur(gray, (5, 5), 0)
-    _, thresh = cv2.threshold(blurred, 200, 255, cv2.THRESH_BINARY_INV)
+    _, thresh = cv2.threshold(blurred, 200, 255, cv2.THRESH_BINARY_INV) # 200 threshold value gave best accuracy results
     contours, _ = cv2.findContours(thresh, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     if not contours:
         print("No contours found.")
@@ -24,7 +24,7 @@ def preprocess_points(image_path): #
     return points
 
 # graham Scan Implementation
-def graham_scan(points): #
+def graham_scan(points): 
     # find the point with the lowest Y-coordinate
     lowest_point = min(points, key=lambda p: (p[1], p[0]))
 
@@ -44,62 +44,46 @@ def graham_scan(points): #
     
     return hull
 
-def average_hulls(hulls): #
-    # assuming all hulls have the same number of points for ease
-    averaged_hull = []
-    for i in range(len(hulls[0])):
-        avg_x = sum(h[i][0] for h in hulls) // len(hulls)
-        avg_y = sum(h[i][1] for h in hulls) // len(hulls)
-        averaged_hull.append((avg_x, avg_y))
-    return np.array(averaged_hull)
-
-def cross_product(o, a, b): #
+def cross_product(o, a, b): 
     """Calculate the cross product of vectors OA and OB.
     A positive value indicates a left turn, negative indicates a right turn, and 0 indicates collinear."""
     return (a[0] - o[0]) * (b[1] - o[1]) - (a[1] - o[1]) * (b[0] - o[0])
 
-# compute Reference Convex Hull
-def compute_reference_hull(training_image): #
+# compute training Convex Hull
+def compute_reference_hull(training_image): 
     hulls = []
     #for path in training_image:
     points = preprocess_points(training_image)
     if points is not None:
         hull = graham_scan(points)
         hulls.append(hull)
-
-    if len(hulls) > 1:
-        averaged_hull = average_hulls(hulls)
-        return averaged_hull
-    elif hulls:
+    if len(hulls)==1 :
         return hulls[0]
     else:
         print("No valid hulls found in reference images.")
         return None
 
 # compare Convex Hulls
-def compare_hulls(input_hull, reference_hull, threshold=50): #
-    if len(input_hull) != len(reference_hull):
-        #print("Hulls have different number of points, interpolating...")
+def compare_hulls(input_hull, reference_hull, threshold=50): 
+    if len(input_hull) != len(reference_hull): #hull have unequal amount of sets so imterpolate
         target_size = max(len(input_hull), len(reference_hull))
         input_hull = interpolate_hull(input_hull, target_size)
         reference_hull = interpolate_hull(reference_hull, target_size)
 
-    # compute point-wise distances
+    # compute point distances
     distances = [distance.euclidean(p1, p2) for p1, p2 in zip(input_hull, reference_hull)]
     avg_distance = sum(distances) / len(distances)
-    # check if the hulls are similar
-    #print("Average distance between hulls:", avg_distance)
     if avg_distance>450:
         return "invalid"  #should filter out should absurd inputs if for some reason theres a few contours detected
     return avg_distance < threshold
 
 #secondary check incase first check fails, but is less reliable
-def bottom_distance(input_hull,yes_train,no_train): #
+def bottom_distance(input_hull,yes_train,no_train): 
     input_hull = np.array(input_hull)
     yes_train = np.array(yes_train)
     no_train = np.array(no_train)
 
-    # identify the bottom-right point (point with max x + y)
+    # identify the bottom right point (point with max x + y)
     bottom_right_input = input_hull[np.argmax(input_hull[:, 0] + input_hull[:, 1])]
     bottom_right_yes = yes_train[np.argmax(yes_train[:, 0] + yes_train[:, 1])]
     bottom_right_no = no_train[np.argmax(no_train[:, 0] + no_train[:, 1])]
@@ -109,7 +93,7 @@ def bottom_distance(input_hull,yes_train,no_train): #
     rightmost_yes = yes_train[np.argmax(yes_train[:, 0])]
     rightmost_no = no_train[np.argmax(no_train[:, 0])]
 
-    # calculate distances between bottom-right and rightmost points
+    # calculate distances between bottom right and rightmost points
     input_distance = np.linalg.norm(bottom_right_input - rightmost_input)
     yes_distance = np.linalg.norm(bottom_right_yes - rightmost_yes)
     no_distance = np.linalg.norm(bottom_right_no - rightmost_no)
@@ -124,7 +108,7 @@ def bottom_distance(input_hull,yes_train,no_train): #
     else:
         return "The image is possibly a 'no'"
 
-def interpolate_hull(hull, target_size): #
+def interpolate_hull(hull, target_size): 
     """Interpolate points of a hull to ensure equal number of points."""
     interpolated_hull = []
     step = len(hull) / target_size
@@ -199,18 +183,20 @@ else:
     # training cata
     training_yes = './testing_data/yes_2.jpg'
     training_no = './testing_data/no_2.jpg'
-    input_image = './testing_data/yes_1.jpg'
-
+    input_image = './testing_data/no_1.jpg'
     # computing the training datas convex hulls
     training_yes_hull=compute_reference_hull(training_yes)
     training_no_hull = compute_reference_hull(training_no)
-
-    #print("yes hulls: ",training_yes_hull)
-    #print("no hulls: ",training_yes_hull)
     # now to process input image
     input_points = preprocess_points(input_image)
     if input_points is not None:
         input_hull = graham_scan(input_points)
+        image = cv2.imread(input_image)
+        # to give a visualize of the convex hull
+        cv2.polylines(image, [np.array(input_hull)], isClosed=True, color=(0, 255, 0), thickness=2)
+        cv2.imshow("Threshold Image", image)
+        cv2.waitKey(0) == ord('q') # press 'q' to quit
+        cv2.destroyAllWindows()
     # compare input hull with reference hull
         if training_yes_hull and compare_hulls(input_hull, training_yes_hull):
             print("The gesture matches the 'Yes' symbol!")
