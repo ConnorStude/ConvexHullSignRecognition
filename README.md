@@ -8,4 +8,4 @@ on your keyboard.
 
 To run the performance test add the tag "performanceTest 1" in the console. This automatically runs the 
 performance test and outputs the results into the console.
-"python PixelComparision.py --performanceTest1"
+"python PixelComparision.py --performanceTest 1"
