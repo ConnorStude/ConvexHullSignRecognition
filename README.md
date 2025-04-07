@@ -1,3 +1,5 @@
+All information about this project can be found in the cs450-final-report.pdf file located in this repository
+
 To run the unit tests for either the Convex Hull or Pixel Comparison run the program by entering
 "python ConvexHull.py" or "python PixelComparison.py" this will run a unit test and output the results 
 into the console. To change the unit test open the "./testing_data" folder and determine the image you 
